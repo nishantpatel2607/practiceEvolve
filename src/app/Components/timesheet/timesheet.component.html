@@ -1,0 +1,196 @@
+<div class="card">
+  <div class="card-header text-center">
+    Timesheet
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-lg-1">
+        <button type="button" class="btn btn-primary" (click)="newRecord()">
+          New
+        </button>
+      </div>
+      <div class="col-lg-6">
+        <button type="button" class="btn btn-success" (click)="submitRecords()">Submit</button>
+      </div>
+      <div class="col-lg-3">Hourly Rate: ${{ defaultHourlyRate }}</div>
+    </div>
+    <div class="row" style="margin-top: 20px">
+      <div class="col-lg-12">
+        <div class="card" style="height: 550px">
+          <div class="card-body">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col" style="width: 7%">State</th>
+                  <th scope="col" style="width: 20%">Title</th>
+                  <th scope="col" style="width: 15%">Type</th>
+                  <th scope="col" style="width: 15%">Duration</th>
+                  <th scope="col" style="width: 18%">Hourly Rate</th>
+                  <th scope="col" style="width: 10%">Total</th>
+                  <th scope="col" style="width: 15%">Column</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="showNewRec">
+                  <td></td>
+                  <td>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="Title"
+                      [(ngModel)]="newRec.title"
+                    />
+                  </td>
+                  <td>
+                    <select
+                      class="form-control"
+                      id="Type"
+                      [(ngModel)]="newRec.type"
+                    >
+                      <option>Telephone Call</option>
+                      <option>Research</option>
+                      <option>Drafting Document</option>
+                    </select>
+                  </td>
+                  <td>
+                    <timepicker
+                      [showMeridian]="false"
+                      [showSpinners]="false"
+                      id="duration"
+                      [(ngModel)]="newRec.duration"
+                      (change)="changeValues(newRec)"
+                    ></timepicker>
+                  </td>
+                  <td>
+                    <div class="form-group row">
+                      <label for="hourlyRate" class="col-sm-1 col-form-label"
+                        >$</label
+                      >
+                      <div class="col-sm-10">
+                        <input
+                          type="number"
+                          class="form-control"
+                          value="{{ dailyRate|currency }}"
+                          id="hourlyRate"
+                          [(ngModel)]="newRec.hourlyRate"
+                          (change)="changeValues(newRec)"
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ newRec.total|currency }}</td>
+                  <td>
+                    <div>
+                      <button
+                        type="button"
+                        class="btn btn-success"
+                        id="btnSave"
+                        (click)="saveRecord()"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-warning"
+                        style="margin-left:4px"
+                        (click)="cancelRecord()"
+                        id="btnCancel"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngFor="let tsk of taskRecords" (click) = "selectTableRow(tsk)" [ngClass]="isSelected(tsk.id)?'bg-info':'bg-white'" >
+                  <td>{{ tsk.state }}</td>
+                  <td><label *ngIf="!isEditMode(tsk.id)">{{ tsk.title }}</label> <input
+                    type="text"
+                    class="form-control"
+                    id="Title"
+                    [(ngModel)]="editTask.title"
+                    *ngIf="isEditMode(tsk.id)"
+                  /></td>
+                  <td><label *ngIf="!isEditMode(tsk.id)">{{ tsk.type }}</label> <select
+                    class="form-control"
+                    id="Type"
+                    [(ngModel)]="editTask.type"
+                    *ngIf="isEditMode(tsk.id)"
+                  >
+                    <option>Telephone Call</option>
+                    <option>Research</option>
+                    <option>Drafting Document</option>
+                  </select> </td>
+                  <td><label *ngIf="!isEditMode(tsk.id)">{{ tsk.duration|date:'hh:mm' }}</label>  <timepicker
+                    [showMeridian]="false"
+                    [showSpinners]="false"
+                    id="duration"
+                    [(ngModel)]="editTask.duration"
+                    (change)="changeValues(editTask)"
+                    *ngIf="isEditMode(tsk.id)"
+                  ></timepicker></td>
+                  <td><label *ngIf="!isEditMode(tsk.id)">{{ tsk.hourlyRate|currency }}</label>
+                    <div class="form-group row" *ngIf="isEditMode(tsk.id)">
+                        <label for="hourlyRate" class="col-sm-1 col-form-label"
+                          >$</label
+                        >
+                        <div class="col-sm-10">
+                          <input
+                            type="number"
+                            class="form-control"
+                            id="hourlyRate"
+                            [(ngModel)]="editTask.hourlyRate"
+                            (change)="changeValues(editTask)"
+                          />
+                        </div>
+                      </div></td>
+                  <td><label *ngIf="isEditMode(tsk.id)">{{ editTask.total|currency }}</label> 
+                    <label *ngIf="!isEditMode(tsk.id)">{{ tsk.total|currency }}</label> </td>
+                  <td>
+                    <div *ngIf="tsk.state === 'Active' && !isEditMode(tsk.id)">
+                      <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="btnEdit"
+                        (click)="editRecord(tsk,$event)"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-danger"
+                        style="margin-left:4px"
+                        id="btnDelete"
+                        (click)="deleteRecord(tsk)"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                    <div *ngIf="tsk.state === 'Active' && isEditMode(tsk.id)">
+                        <button
+                          type="button"
+                          class="btn btn-success"
+                          id="btnSaveRec"
+                          (click)="saveEditRecord(tsk,$event)"
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-warning"
+                          style="margin-left:4px"
+                          id="btnCancelRec"
+                          (click)="cancelEditRecord(tsk, $event)"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
